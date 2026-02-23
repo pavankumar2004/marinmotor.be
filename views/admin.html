@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="icon" type="image/png" href="/images/logo1.png">
+    <style>        
+        html, body {
+            width: 100%;
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+        }
+
+        /* Ensure all elements stay within the viewport */
+        * {
+            box-sizing: border-box;
+        }
+
+        /* Ensure no element overflows the viewport */
+        .container-fluid, .container {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+    </style>
+    <style>
+        body {
+            background-color: #121212;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #fff;
+            text-align: center;
+        }
+        form {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 500px;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input[type="text"],
+        input[type="file"],
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: none;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        input[type="text"],
+        input[type="file"] {
+            background-color: #555;
+            color: #fff;
+            padding: 10px;
+        }
+        button {
+            background-color: #007BFF;
+            color: #fff;
+            cursor: pointer;
+            padding: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        form h2 {
+            margin-top: 0;
+        }
+    </style>
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PJW0MCQCD2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-PJW0MCQCD2');
+</script>
+</head>
+<body>
+    <h1>Admin Panel</h1>
+    
+    <div style="text-align: center; margin: 20px 0;">
+        <button id="maintenanceToggle" style="padding: 15px 30px; font-size: 16px; cursor: pointer; border-radius: 5px; border: none;">
+            Loading...
+        </button>
+        <p id="maintenanceStatus" style="margin-top: 10px; font-size: 14px;"></p>
+    </div>
+
+    <h2>Ajouter une voiture</h2>
+    <form id="addProductForm" enctype="multipart/form-data">
+        <label>Product ID: <input type="text" name="id" required></label>
+        <label>Marque: <input type="text" name="marque" required></label>
+        <label>Modele: <input type="text" name="modele" required></label>
+        <label>Annee: <input type="text" name="Annee" required></label>
+        <label>Kilometrage: <input type="text" name="Kilometrage" required></label>
+        <label>Carburant: <input type="text" name="Carburant" required></label>
+        <label>Puissance: <input type="text" name="puissance" required></label>
+        <label>Moteur: <input type="text" name="moteur" required></label>
+        <label>Boite: <input type="text" name="boite" required></label>
+        <label>Image principale: <input type="file" name="pimage" required></label>
+        <label>Options: <input type="text" name="options" required></label>
+        <label>Price: <input type="text" name="price" required></label>
+        <button type="submit">Ajouter</button>
+    </form>
+
+    <h2>Ajouter des images supplémentaires</h2>
+    <form id="addDisplayImagesForm" enctype="multipart/form-data">
+        <label>Product ID: <input type="text" name="productId" id="productId" required></label>
+        <label>Autres images: <input type="file" name="display_image" id="display_image" multiple required></label>
+        <button type="submit">Ajouter des images</button>
+    </form>
+
+    <h2>Mettre à jour le prix d'une voiture</h2>
+    <form id="updateProductPriceForm">
+        <label>Product ID: <input type="text" name="id" id="updateProductId" required></label>
+        <label>Price: <input type="text" name="price" id="updatePrice" required></label>
+        <button type="submit">Mettre à jour le prix</button>
+    </form>
+
+    <h2>Supprimer une voiture</h2>
+    <form id="deleteProductForm">
+        <label>Product ID: <input type="text" name="id" required></label>
+        <button type="submit">Supprimer</button>
+    </form>
+    <h2>Supprimer les images d'une voiture</h2>
+<form id="deleteProductImagesForm">
+    <label>Product ID: <input type="text" name="id" required></label>
+    <button type="submit">Supprimer les images</button>
+</form>
+
+    <a href="/view-products">Voir toutes les voitures</a>
+
+    <script>
+        // Maintenance mode toggle
+        const maintenanceToggle = document.getElementById('maintenanceToggle');
+        const maintenanceStatus = document.getElementById('maintenanceStatus');
+
+        async function loadMaintenanceStatus() {
+            try {
+                const response = await fetch('/admin/maintenance-status');
+                const data = await response.json();
+                updateMaintenanceUI(data.maintenanceMode);
+            } catch (error) {
+                console.error('Error loading maintenance status:', error);
+            }
+        }
+
+        function updateMaintenanceUI(isEnabled) {
+            if (isEnabled) {
+                maintenanceToggle.textContent = 'Désactiver le mode maintenance';
+                maintenanceToggle.style.backgroundColor = '#dc3545';
+                maintenanceStatus.textContent = 'Mode maintenance: ACTIVÉ';
+                maintenanceStatus.style.color = '#dc3545';
+            } else {
+                maintenanceToggle.textContent = 'Activer le mode maintenance';
+                maintenanceToggle.style.backgroundColor = '#28a745';
+                maintenanceStatus.textContent = 'Mode maintenance: DÉSACTIVÉ';
+                maintenanceStatus.style.color = '#28a745';
+            }
+        }
+
+        maintenanceToggle.addEventListener('click', async function() {
+            try {
+                const response = await fetch('/admin/toggle-maintenance', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                updateMaintenanceUI(data.maintenanceMode);
+                alert(data.message);
+            } catch (error) {
+                console.error('Error toggling maintenance mode:', error);
+                alert('Erreur lors du changement du mode maintenance');
+            }
+        });
+
+        // Load initial status
+        loadMaintenanceStatus();
+
+        document.getElementById('addProductForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            fetch('/admin/add', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.text())
+              .then(data => alert(data));
+        });
+
+        document.getElementById('addDisplayImagesForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const productId = formData.get('productId');
+            const files = formData.getAll('display_image');
+            for (const file of files) {
+                const singleImageFormData = new FormData();
+                singleImageFormData.append('display_image', file);
+                await fetch(`/admin/add-display-image/${productId}`, {
+                    method: 'POST',
+                    body: singleImageFormData
+                }).then(response => response.text())
+                  .then(data => console.log(data));
+            }
+            alert('Images ajoutées avec succès');
+        });
+
+        document.getElementById('updateProductPriceForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const productId = formData.get('id');
+            const updatedPrice = formData.get('price');
+
+            if (productId && updatedPrice) {
+                fetch(`/admin/update/${productId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ price: updatedPrice })
+                }).then(response => response.text())
+                  .then(data => alert(data))
+                  .catch(error => console.error('Error updating product price:', error));
+            } else {
+                alert('Please provide both Product ID and Price.');
+            }
+        });
+
+        document.getElementById('deleteProductForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            fetch(`/admin/delete/${formData.get('id')}`, {
+                method: 'DELETE'
+            }).then(response => response.text())
+              .then(data => alert(data));   
+        });
+        document.getElementById('deleteProductImagesForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const productId = formData.get('id');
+        fetch(`/admin/delete-images/${productId}`, {
+            method: 'DELETE'
+        }).then(response => response.text())
+          .then(data => alert(data))
+          .catch(error => console.error('Error deleting product images:', error));
+    });
+
+    </script>
+</body>
+</html>
