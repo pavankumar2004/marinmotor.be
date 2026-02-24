@@ -1,23 +1,20 @@
-    require('dotenv').config();
     const express = require("express");
     const path = require("path");
     const { Storage } = require('@google-cloud/storage');
     const multer = require('multer');
     const basicAuth = require('basic-auth');
-    const bcrypt = require('bcrypt');
     const helmet = require('helmet');
     const rateLimit = require('express-rate-limit');
     const app = express();
 
     // --- Google Cloud Storage ---
-    const gcsCredentials = process.env.GOOGLE_APPLICATION_CREDENTIALS || path.join(__dirname, 'keys.json');
-    process.env.GOOGLE_APPLICATION_CREDENTIALS = gcsCredentials;
+    process.env.GOOGLE_APPLICATION_CREDENTIALS = path.join(__dirname, 'keys.json');
 
     const storage = new Storage({
-        projectId: process.env.GCS_PROJECT_ID || 'meta-geography-433812-b8',
-        keyFilename: gcsCredentials
+        projectId: 'meta-geography-433812-b8',
+        keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
     });
-    const bucketName = process.env.GCS_BUCKET_NAME || 'cars-marin-motor';
+    const bucketName = 'cars-marin-motor';
 
     // --- Security headers with Helmet ---
     app.use(helmet({
@@ -118,33 +115,14 @@
         }
     });
 
-    // --- Basic authentication middleware with bcrypt ---
-    const ADMIN_USER = process.env.ADMIN_USER || 'admin';
-    const ADMIN_PASS_HASH = process.env.ADMIN_PASS_HASH;
-
-    const adminAuth = async (req, res, next) => {
+    // --- Basic authentication middleware ---
+    const adminAuth = (req, res, next) => {
         const user = basicAuth(req);
-        if (!user || user.name !== ADMIN_USER) {
+        if (!user || user.name !== 'admin' || user.pass !== 'password') {
             res.set('WWW-Authenticate', 'Basic realm="Admin"');
             return res.status(401).send('Authentication required.');
         }
-
-        if (!ADMIN_PASS_HASH) {
-            console.error('ADMIN_PASS_HASH not set in environment variables!');
-            return res.status(500).send('Server configuration error.');
-        }
-
-        try {
-            const match = await bcrypt.compare(user.pass, ADMIN_PASS_HASH);
-            if (!match) {
-                res.set('WWW-Authenticate', 'Basic realm="Admin"');
-                return res.status(401).send('Authentication required.');
-            }
-            next();
-        } catch (err) {
-            console.error('Auth error:', err);
-            return res.status(500).send('Authentication error.');
-        }
+        next();
     };
 
     // --- Maintenance mode ---
