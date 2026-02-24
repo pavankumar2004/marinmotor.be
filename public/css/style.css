@@ -486,9 +486,6 @@ img.card-img-top {
   background: var(--swiper-pagination-bullet-inactive-color, var(--accent-color));
 
 }
-#pricing {
-  display: none;
-}
 
 
 
